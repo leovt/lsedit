@@ -1,0 +1,11 @@
+g.gleis>path{
+    fill: none;
+    stroke: blue;
+    stroke-width: 5px;
+}
+
+g.gleis>circle{
+    fill: white;
+    stroke: blue;
+    stroke-width: 2px;
+}

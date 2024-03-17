@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>File Reader Example</title>
+<script src="lsedit.js"></script>
+<link rel="stylesheet" type="text/css" href="style.css" />
+<link rel="stylesheet" type="text/css" href="map.css" />
+</head>
+<body>
+    <nav>
+        <label for="fileInput">Load Loksim3D Track</label>
+        <input type="file" id="fileInput" accept=".l3dstr" onchange="handleFileSelect(event)">
+    </nav>
+<div id="tree"></div>
+<div id="info"></div>
+<div id="main">
+<svg ViewBox="0 0 1500 2500">
+    <g id="map">
+        <image href="swiss-map-raster25_2688500_1251500_2690000_1254000.png" x="0" y="0" width="1500" height="2500" />
+    </g>
+
+    <g transform="scale(1 -1)translate(0 -2500)">
+    <g id="LS" transform="translate(207, 525)">
+    </g>
+    </g>
+</svg>
+</div>
+</body>
+</html>

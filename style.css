@@ -1,0 +1,26 @@
+body {
+    display: grid;
+    grid-template-columns: 200px auto;
+    grid-template-rows: 50px 80px auto;
+    grid-template-areas: 
+        "toolbar toolbar"
+        "info    main"
+        "tree    main";
+
+}
+
+nav {
+    grid-area: toolbar;
+}
+
+#tree {
+    grid-area: tree;
+}
+
+#info {
+    grid-area: info;
+}
+
+#main {
+    grid-area: main;
+}
