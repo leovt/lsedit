@@ -9,3 +9,32 @@ g.gleis>circle{
     stroke: blue;
     stroke-width: 2px;
 }
+
+.profile {
+    fill: pink;
+    stroke: purple;
+    stroke-width: 2;
+    vector-effect: non-scaling-stroke;
+}
+
+.label {
+    font-family: sans-serif;
+    font-size: 1px;
+}
+
+.label.xaxis {
+    text-anchor: middle;
+    dominant-baseline: hanging;
+}
+
+.label.zaxis {
+    text-anchor: end;
+    dominant-baseline: middle;
+}
+
+.frame {
+    fill: none;
+    stroke: black;
+    stroke-width: 2;
+    vector-effect: non-scaling-stroke;
+}
