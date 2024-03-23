@@ -17,6 +17,13 @@ g.gleis>circle{
     vector-effect: non-scaling-stroke;
 }
 
+#trackprofile {
+    fill: none;
+    stroke: blue;
+    stroke-width: 3;
+    vector-effect: non-scaling-stroke;
+}
+
 .label {
     font-family: sans-serif;
     font-size: 1px;
