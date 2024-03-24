@@ -126,6 +126,7 @@ function loadFile(fileContent){
         document.getElementById('LS').appendChild(ggleis);
         if(name=="Gleis2") {
             showTrackProfile(track);
+            ggleis.classList.add("selected");
         }
     }
 }

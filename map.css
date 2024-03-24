@@ -1,12 +1,18 @@
+g.gleis>*{
+    stroke: black;
+}
+
+g.gleis.selected>*{
+    stroke: blue;
+}
+
 g.gleis>path{
     fill: none;
-    stroke: blue;
     stroke-width: 5px;
 }
 
 g.gleis>circle{
     fill: white;
-    stroke: blue;
     stroke-width: 2px;
 }
 
@@ -20,7 +26,7 @@ g.gleis>circle{
 #trackprofile {
     fill: none;
     stroke: blue;
-    stroke-width: 3;
+    stroke-width: 2;
     vector-effect: non-scaling-stroke;
 }
 
