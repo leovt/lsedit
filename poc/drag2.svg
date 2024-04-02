@@ -27,92 +27,119 @@
 		return document.createElementNS("http://www.w3.org/2000/svg", tagName);
 	}
 	(function () {
-		var svg = document.getElementsByTagName('svg')[0];
-		var currentLine;
-		var currentGroup;
-		var currentPathData;
-		var currentPathDataAfter;
-		
-		var currentPoint;
+		const svg = document.getElementsByTagName('svg')[0];
+		var state;
+
+		function reset() {
+			state = {state: 'start'};
+		}
+
+		function startDrawing(event) {
+			state = {
+				state: 'drawing',
+				currentGroup: createElementSvg('g'),
+				currentLine: createElementSvg('path'),
+				currentPathData: `M${event.x} ${event.y}`
+			};
+			state.currentGroup.appendChild(state.currentLine);
+			state.currentLine.setAttribute('class', 'line');
+			svg.appendChild(state.currentGroup);
+		}
+
+		function startMoving(event) {
+			state = {
+				state: 'moving',
+				currentPoint: event.target,
+				currentLine: event.target.parentElement.getElementsByTagName('path')[0],
+				pathDataBefore: "M",
+				pathDataAfter: ""
+			};
+			state.currentPoint.classList.add('selected');
+			let after = false;
+			for (pt of event.target.parentElement.getElementsByTagName('circle')) {
+				if (pt === state.currentPoint) {
+					after = true;
+					continue;
+				}
+				if (after) {
+					state.pathDataAfter += `${pt.getAttribute('cx')} ${pt.getAttribute('cy')} `;
+				} else {
+					state.pathDataBefore += `${pt.getAttribute('cx')} ${pt.getAttribute('cy')} `;
+				}
+			}
+		}
 		
 		svg.addEventListener('mousedown', event => {
 			if (event.target.classList.contains('pt')) {
-				if(currentGroup) {
-				} else {
-					currentPoint = event.target;
-					currentPoint.classList.add('selected');
-					currentLine = event.target.parentElement.getElementsByTagName('path')[0];
-					let after = false;
-					currentPathData = "M";
-					currentPathDataAfter = "";
-					for (pt of event.target.parentElement.getElementsByTagName('circle')) {
-						if (pt === currentPoint) {
-							after = true;
-							continue;
-						}
-						if (after) {
-							currentPathDataAfter += `${pt.getAttribute('cx')} ${pt.getAttribute('cy')} `;
-						} else {
-							currentPathData += `${pt.getAttribute('cx')} ${pt.getAttribute('cy')} `;
-						}
-					}
+				if (state.state == 'start'){
+					startMoving(event);
 				}
 			}
 			else {
 				if (event.button == 0) {
-					let pt = createElementSvg('circle');
-					pt.setAttribute('class', 'pt');
-					pt.setAttribute('r', '3');
-					pt.setAttribute('cx', event.x);
-					pt.setAttribute('cy', event.y);
+					if (state.state == 'start' || state.state == 'drawing') {
+						let pt = createElementSvg('circle');
+						pt.setAttribute('class', 'pt');
+						pt.setAttribute('r', '3');
+						pt.setAttribute('cx', event.x);
+						pt.setAttribute('cy', event.y);
 					
-					if (currentGroup) {
-						currentPathData += `L${event.x} ${event.y}`;
-					} else {
-						currentGroup = createElementSvg('g');
-						currentLine = createElementSvg('path');
-						currentLine.setAttribute('class', 'line');
-						currentGroup.appendChild(currentLine);
-						currentPathData = `M${event.x} ${event.y}`
-						svg.appendChild(currentGroup);
+						if (state.state == 'drawing') {
+							state.currentPathData += `L${event.x} ${event.y}`;
+						} else {
+							startDrawing(event);
+						}
+						state.currentGroup.appendChild(pt);
 					}
-					currentGroup.appendChild(pt);
 				} else {
-					currentLine.setAttribute('d', currentPathData);
-					currentLine = undefined;
-					currentGroup = undefined;
-					currentPathData = undefined;
-					event.preventDefault();
+					if (state.state == 'drawing') {
+						state.currentLine.setAttribute('d', state.currentPathData);
+						reset();
+						event.preventDefault();
+					}
 				}
+			}
+		});
+
+		svg.addEventListener('dblclick', event => {
+			if (state.state == 'drawing') {
+				let pt = createElementSvg('circle');
+				pt.setAttribute('class', 'pt');
+				pt.setAttribute('r', '3');
+				pt.setAttribute('cx', event.x);
+				pt.setAttribute('cy', event.y);
+				state.currentPathData += `L${event.x} ${event.y}`;
+				state.currentGroup.appendChild(pt);
+				state.currentLine.setAttribute('d', state.currentPathData);
+				reset();
 			}
 		});
 		
 		svg.addEventListener('mousemove', event => {
-			if(currentPoint) {
-				currentPoint.setAttribute('cx', event.x);
-				currentPoint.setAttribute('cy', event.y);
-				currentLine.setAttribute('d', currentPathData + `${event.x} ${event.y} ` + currentPathDataAfter);
+			if(state.state == 'moving') {
+				state.currentPoint.setAttribute('cx', event.x);
+				state.currentPoint.setAttribute('cy', event.y);
+				state.currentLine.setAttribute('d', `${state.pathDataBefore}${event.x} ${event.y} ${state.pathDataAfter}`);
 			}
-			else if(currentLine) {
-				currentLine.setAttribute('d', currentPathData + `L${event.x} ${event.y}`);
+			else if(state.state == 'drawing') {
+				state.currentLine.setAttribute('d', `${state.currentPathData}L${event.x} ${event.y}`);
 			}
 		});
 
 		svg.addEventListener('mouseup', event => {
-			if(currentPoint) {
-				currentPoint.setAttribute('cx', event.x);
-				currentPoint.setAttribute('cy', event.y);
-				currentLine.setAttribute('d', currentPathData + `${event.x} ${event.y} ` + currentPathDataAfter);
-				currentPoint.classList.remove('selected');
-				currentPoint = undefined;
-				currentLine = undefined;
-				currentPathData = undefined;
-				currentPathDataAfter = undefined;
+			if(state.state == 'moving') {
+				state.currentPoint.setAttribute('cx', event.x);
+				state.currentPoint.setAttribute('cy', event.y);
+				state.currentLine.setAttribute('d', `${state.pathDataBefore}${event.x} ${event.y} ${state.pathDataAfter}`);
+				state.currentPoint.classList.remove('selected');
+				reset();
 			}
-			else if(currentLine) {
-				currentLine.setAttribute('d', currentPathData + `L${event.x} ${event.y}`);
+			else if(state.state == 'drawing') {
+				state.currentLine.setAttribute('d', `${state.currentPathData}L${event.x} ${event.y}`);
 			}
 		});
+
+		reset();
 
 	})();
 	</script>
