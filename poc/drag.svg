@@ -1,0 +1,149 @@
+<svg width="400" height="300" viewBox="0 0 400 300"
+     xmlns="http://www.w3.org/2000/svg">
+	<style>
+	.pt{
+		fill: white;
+		stroke: blue;
+		stroke-width: 2;
+		cursor: move;
+	}
+	.slope>*{
+		fill: none;
+		stroke: blue;
+		stroke-width: 2;
+		cursor: move;
+	}
+	.invisible{
+		stroke: rgba(0,0,0,0);
+		stroke-width: 10;
+	}
+	#arc{
+		fill: none;
+		stroke: black;
+		stroke-width: 2;
+		stroke-dasharray: 2 2;
+	}
+	.background {
+		fill: lightyellow;
+	}
+	.arrow {
+		fill: blue;
+	}
+	</style>
+	<rect width="100%" height="100%" class="background"/>
+	<path id="arc"/>
+	<g id="A">
+		<g id="sA" class="slope">
+			<line class="invisible" x1="-40" x2="40"/>
+			<line x1="-40" x2="40"/>
+			<path d="M38 0 36 4 44 0 36 -4Z" class="arrow"/>
+		</g>
+		<circle id="cA" class="pt" r="7"/>
+	</g>
+	<g id="B">
+		<g id="sB" class="slope">
+			<line class="invisible" x1="-40" x2="40"/>
+			<line x1="-40" x2="40"/>
+			<path d="M38 0 36 4 44 0 36 -4Z" class="arrow"/>
+		</g>
+		<circle id="cB" class="pt" r="7"/>
+	</g>
+	<circle id="C" r="4"/>
+	<script>
+	(function () {
+		var x0 = 100;
+		var y0 = 200;
+		var a0 = 45;
+
+		var x1 = 300;
+		var y1 = 50;
+		var a1 = -60;
+		
+		const A = document.getElementById("A");
+		const sA = document.getElementById("sA");
+		const cA = document.getElementById("cA");
+		
+		const B = document.getElementById("B");
+		const sB = document.getElementById("sB");
+		const cB = document.getElementById("cB");
+
+		const C = document.getElementById("C");
+		
+		const arc = document.getElementById("arc");
+		
+		const DEG = Math.PI / 180;
+
+		function update() {
+			A.setAttribute("transform", `translate(${x0} ${y0})`);
+			sA.setAttribute("transform", `rotate(${a0})`);
+			B.setAttribute("transform", `translate(${x1} ${y1})`);
+			sB.setAttribute("transform", `rotate(${a1})`);
+
+			let c0 = Math.cos(a0 * DEG);
+			let s0 = Math.sin(a0 * DEG);
+			let c1 = Math.cos(a1 * DEG);
+			let s1 = Math.sin(a1 * DEG);
+			
+			let t = ((x1-x0)*s1 - (y1-y0)*c1)/(c0*s1-c1*s0);
+			let u = ((x1-x0)*s0 - (y1-y0)*c0)/(c1*s0-c0*s1);
+			
+			//let x = x0 + t*c0;
+			//let y = y0 + t*s0;
+
+			let x = x1 - u*c1;
+			let y = y1 - u*s1;
+			
+			let beta = (180+a0-a1)/2;
+			let da = (a1 - a0 + 180) % 360 - 180;
+			
+			
+			if (t > u) {
+				let x2 = x0 + (t-u)*c0;
+				let y2 = y0 + (t-u)*s0;
+				C.setAttribute("transform", `translate(${x2} ${y2})`);
+				let r = u * Math.tan(beta * DEG);
+				arc.setAttribute("d", `M${x0} ${y0} ${x2} ${y2}A${r} ${r} 0 0 ${da>0?1:0} ${x1} ${y1}`);
+			} else {
+				let x3 = x1 - (u-t)*c1;
+				let y3 = y1 - (u-t)*s1;
+				C.setAttribute("transform", `translate(${x3} ${y3})`);
+				let r = t * Math.tan(beta * DEG);
+				arc.setAttribute("d", `M${x0} ${y0}A${r} ${r} 0 0 ${da>0?1:0} ${x3} ${y3}L${x1} ${y1}`);
+			}
+		}
+		
+		var target = "";
+		
+		document.addEventListener("mousemove", event => {
+			switch (target) {
+			case "A":
+				x0 = event.x;
+				y0 = event.y;
+				update();
+				break;
+			case "sA":
+				a0 = Math.atan2(event.y - y0, event.x - x0) * 180 / Math.PI;
+				update();
+				break;
+			case "B":
+				x1 = event.x;
+				y1 = event.y;
+				update();
+				break;
+			case "sB":
+				a1 = Math.atan2(event.y - y1, event.x - x1) * 180 / Math.PI;
+				update();
+				break;
+			}
+		});
+		
+		document.addEventListener("mouseup", event => {target=""});
+		cA.addEventListener("mousedown", event => {target="A";});
+		sA.addEventListener("mousedown", event => {target="sA";});
+		cB.addEventListener("mousedown", event => {target="B";});
+		sB.addEventListener("mousedown", event => {target="sB";});
+				
+		update();
+	})();
+	</script>
+</svg>
