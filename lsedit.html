@@ -12,20 +12,32 @@
     <nav>
         <label for="fileInput">Load Loksim3D Track</label>
         <input type="file" id="fileInput" accept=".l3dstr" onchange="handleFileSelect(event)">
+        <input type="range" id="opacity" name="opacity" min="0" max="100" oninput="document.getElementById('ortho').setAttribute('opacity', `${event.target.value}%`)"/>
+        <label for="opacity">Orthophoto Opacity</label>
     </nav>
 <div id="tree"></div>
 <div id="info"></div>
 <div id="main">
-<svg ViewBox="0 0 1500 2500" id="svgmap">
+    <div id="mapcontainer">
+<svg ViewBox="0 0 4000 2000" id="svgmap" width="4000" height="2000">
     <g id="map">
-        <image href="swiss-map-raster25_2688500_1251500_2690000_1254000.png" x="0" y="0" width="1500" height="2500"/>
+        <image href="huer.png" x="0" y="0" width="4000" height="2000"/>
+    </g>
+    <g id="ortho" opacity="50%">
+        <image href="swissimage-dop10_2022_2692-1252_0.1_2056.jpeg" x="2000" y="1000" width="1000" height="1000"/>
+        <image href="swissimage-dop10_2022_2693-1252_0.1_2056.jpeg" x="3000" y="1000" width="1000" height="1000"/>
+        <image href="swissimage-dop10_2022_2690-1253_0.1_2056.jpeg" x=   "0" y="0" width="1000" height="1000"/>
+        <image href="swissimage-dop10_2022_2691-1253_0.1_2056.jpeg" x="1000" y="0" width="1000" height="1000"/>
+        <image href="swissimage-dop10_2022_2692-1253_0.1_2056.jpeg" x="2000" y="0" width="1000" height="1000"/>
+        <image href="swissimage-dop10_2022_2693-1253_0.1_2056.jpeg" x="3000" y="0" width="1000" height="1000"/>
     </g>
 
-    <g transform="scale(1 -1)translate(0 -2500)">
-    <g id="LS" transform="translate(207, 525)">
+    <g transform="scale(1 -1)translate(0 -2000)">
+    <g id="LS">
     </g>
     </g>
 </svg>
+</div>
 <svg ViewBox="0 0 40 12">
     <g transform="translate(3 8)scale(0.011667 -0.25)translate(0 -440)" id="profiletransform">
         <path d="M3000 432 0 432 0 440 700 445 1200 443 1500 457 1700 455 2200 444 3000 450Z" class="profile" id="realprofile"/>
@@ -43,6 +55,10 @@
     <text x="38" y="10.3" class="label xaxis" id="lbl-x5">3000</text>
 </svg>
 </div>
+<script>
+    OFFSET_WEST  = 2690000;
+    OFFSET_NORTH = 1254000;
+</script>
 <script src="lsedit.js"></script>
 </body>
 </html>

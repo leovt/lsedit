@@ -24,3 +24,18 @@ nav {
 #main {
     grid-area: main;
 }
+
+#mapcontainer {
+    user-select: none;
+    overflow: scroll;
+    max-width: 70vw;
+    max-height: 70vh;
+}
+
+#svgmap {
+    cursor: grab;
+}
+
+#svgmap.drag {
+    cursor: grabbing;
+}

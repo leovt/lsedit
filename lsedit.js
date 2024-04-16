@@ -210,8 +210,8 @@ var info = document.getElementById('info');
 svg.addEventListener('mousemove',function(evt){
   var loc = cursorPoint(evt);
   
-  let east = loc.x + 2688500;
-  let north = 1254000 - loc.y;
+  let east = loc.x + OFFSET_WEST;
+  let north = OFFSET_NORTH - loc.y;
 
     info.innerText = `East: ${east.toFixed(2)}; North: ${north.toFixed(2)}; Height: ${height_at(east, north)}`;
 
@@ -248,3 +248,62 @@ function showTrackProfile(track) {
     document.getElementById("trackprofile").setAttribute("d", d);
 }
 
+function clamp(x, a, b) {
+    if (x<a) { return a; }
+    if (x>b) { return b; }
+    return x;
+}
+
+function enableScrolling() {
+    const svg = document.getElementById("svgmap");
+    const container = document.getElementById("mapcontainer");
+    var pos;
+    function mousedown(event) {
+        pos = {
+            left: container.scrollLeft,
+            top: container.scrollTop,
+            x: event.clientX,
+            y: event.clientY};
+        svg.addEventListener('mousemove', mousemove);
+        svg.addEventListener('mouseup', mouseup);
+        svg.classList.add("drag")
+    }
+    function mousemove(event) {
+        container.scrollLeft = pos.left + pos.x - event.clientX;
+        container.scrollTop = pos.top + pos.y - event.clientY;  
+    }
+    function mouseup(event) {
+        svg.removeEventListener('mousemove', mousemove);
+        svg.removeEventListener('mouseup', mouseup);
+        svg.classList.remove("drag")
+        pos = undefined;
+    }
+    svg.addEventListener('mousedown', mousedown);
+}
+
+function enableZooming() {
+    const svg = document.getElementById("svgmap");
+    const container = document.getElementById("mapcontainer");
+    const originalWidth = svg.getAttribute('width');
+    const originalHeight = svg.getAttribute('height');
+
+    var zoom = 1.0;
+    function wheel(event) {
+        event.preventDefault();
+        zoom = clamp(zoom * Math.exp(-event.deltaY * 0.001), 0.1, 10);
+
+        const rect = svg.getBoundingClientRect();
+        svg.setAttribute('width', originalWidth * zoom);
+        svg.setAttribute('height', originalHeight * zoom);
+        const rect2 = svg.getBoundingClientRect();
+
+        const dx = (event.clientX - rect.left) * (1 - rect2.width / rect.width)
+        const dy = (event.clientY - rect.top) * (1 - rect2.height / rect.height)
+        container.scrollLeft = container.scrollLeft - dx;
+        container.scrollTop = container.scrollTop - dy;
+    }
+    svg.addEventListener('wheel', wheel);
+}
+
+enableScrolling();
+enableZooming();
