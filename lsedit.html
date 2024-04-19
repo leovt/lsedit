@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>File Reader Example</title>
+<title>Track Editor</title>
 <script src="heights.js"></script>
 <link rel="stylesheet" type="text/css" href="style.css" />
 <link rel="stylesheet" type="text/css" href="map.css" />
@@ -12,17 +12,39 @@
     <nav>
         <label for="fileInput">Load Loksim3D Track</label>
         <input type="file" id="fileInput" accept=".l3dstr" onchange="handleFileSelect(event)">
+        <label for="fileInputJSON">Load JSON model</label>
+        <input type="file" id="fileInputJSON" accept=".json">
         <input type="range" id="opacity" name="opacity" min="0" max="100" oninput="document.getElementById('ortho').setAttribute('opacity', `${event.target.value}%`)"/>
         <label for="opacity">Orthophoto Opacity</label>
     </nav>
-<div id="tree"></div>
+<div id="elements">
+    <h3>Tracks</h3>
+    <ul id="tracklist">
+        <li>Dummy 1</li>
+        <li>Dummy 2</li>
+    </ul>
+    <input type="text" placeholder="new track name" id="newTrackName"><button id="addtrack" type="button">Add Track</button>
+    <h3>Contours</h3>
+    <ul id="contourlist">
+        <li>Dummy 1</li>
+        <li>Dummy 2</li>
+    </ul>
+</div>
 <div id="info"></div>
 <div id="main">
     <div id="mapcontainer">
 <svg ViewBox="0 0 4000 2000" id="svgmap" width="4000" height="2000">
+    <defs>
+        <g id="control">
+            <path d="M0 0H0" class="control outer"/>
+            <path d="M0 0H0" class="control inner"/>
+        </g>
+    </defs>
     <g id="map">
         <image href="huer.png" x="0" y="0" width="4000" height="2000"/>
     </g>
+
+
     <g id="ortho" opacity="50%">
         <image href="swissimage-dop10_2022_2692-1252_0.1_2056.jpeg" x="2000" y="1000" width="1000" height="1000"/>
         <image href="swissimage-dop10_2022_2693-1252_0.1_2056.jpeg" x="3000" y="1000" width="1000" height="1000"/>
@@ -32,9 +54,11 @@
         <image href="swissimage-dop10_2022_2693-1253_0.1_2056.jpeg" x="3000" y="0" width="1000" height="1000"/>
     </g>
 
-    <g transform="scale(1 -1)translate(0 -2000)">
-    <g id="LS">
-    </g>
+    <g id="mapitems" transform="scale(1 -1)translate(0 -2000)">
+        <rect width="4000" height="2000" opacity="0%" id="_capture_mouse_events_on_mapitems"/>
+        <g id="LS">
+            <g id="dummy"></g>
+        </g>
     </g>
 </svg>
 </div>

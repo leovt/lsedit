@@ -193,6 +193,159 @@ class Track {
     }
 }
 
+function initializeController() {
+    const trackList = document.getElementById('tracklist');
+    const contourList = document.getElementById('contourlist');
+    
+    var model;
+
+    function clear() {
+        model = {
+            tracks: {},
+            contours: {}
+        };
+        let node = document.getElementById("LS");
+        // replace the container for all ui representations with an empty clone.
+        node.parentNode.replaceChild(node.cloneNode(false), node);
+        contourList.innerHTML = '';
+        trackList.innerHTML = '';
+    }
+
+    function loadModel(newModel) {
+        clear();
+        model = newModel;
+
+        for(const [key, value] of Object.entries(model.tracks)) {
+            trackList.appendChild(createLi(key));
+        }
+    }
+
+    function initializeAddTrack() {
+        function onclick(event) {
+            let newTrackName = document.getElementById("newTrackName").value;
+            if (newTrackName != "") {
+                model.tracks[newTrackName] = {};
+                document.getElementById("newTrackName").value = ""
+                trackList.appendChild(createLi(newTrackName));
+                let element = document.createElementNS('http://www.w3.org/2000/svg',"g");
+                element.setAttributeNS(null, 'class', 'gleis');
+                let label = document.createElementNS('http://www.w3.org/2000/svg',"text");
+                label.innerText = newTrackName;
+                label.setAttributeNS(null, 'transform', 'scale(1,-1)');
+                element.appendChild(label);
+                let path = document.createElementNS('http://www.w3.org/2000/svg',"path");
+                path.setAttributeNS(null, 'd', 'M1000 800L3000 1200');
+                element.appendChild(path);
+                let c = document.createElementNS('http://www.w3.org/2000/svg',"use");
+                c.setAttributeNS(null, "href", "#control");
+                c.setAttributeNS(null, "transform", "translate(1000, 800)");
+                c.setAttributeNS(null, "class", "control");
+                element.appendChild(c);
+                c = document.createElementNS('http://www.w3.org/2000/svg',"use");
+                c.setAttributeNS(null, "href", "#control");
+                c.setAttributeNS(null, "transform", "translate(3000, 1200)");
+                c.setAttributeNS(null, "class", "control");
+                element.appendChild(c);
+                const svgContainer = document.getElementById('LS');
+                svgContainer.appendChild(element);
+            }
+        }
+        document.getElementById("addtrack").addEventListener('click', onclick);
+    }
+
+    function initializeFileOpenUI() {
+        function onchange(event) {
+            const file = event.target.files[0];
+            const reader = new FileReader();
+        
+            reader.onload = function(event) {
+                const fileContent = event.target.result;
+                const newModel = JSON.parse(fileContent);
+                loadModel(newModel);
+            };
+        
+            reader.readAsText(file);
+        }
+
+        document.getElementById('fileInputJSON').addEventListener('change', onchange);
+    }
+
+    function initializeDragTrack() {
+		const target = document.getElementById('mapitems');
+		var state;
+
+		function reset() {
+			state = {state: 'start'};
+		}
+
+		function startMoving(event) {
+			state = {
+				state: 'moving',
+				currentPoint: event.target,
+				currentLine: event.target.parentElement.getElementsByTagName('path')[0],
+				pathDataBefore: "M",
+				pathDataAfter: ""
+			};
+			state.currentPoint.classList.add('selected');
+			let after = false;
+			for (let pt of event.target.parentElement.getElementsByTagName('use')) {
+				if (pt === state.currentPoint) {
+					after = true;
+					continue;
+				}
+                let mat = pt.transform.baseVal.getItem(0).matrix;
+				if (after) {
+					state.pathDataAfter += `${mat.e} ${mat.f} `;
+				} else {
+					state.pathDataBefore += `${mat.e} ${mat.f} `;
+				}
+			}
+            console.log(state);
+		}
+		
+		target.addEventListener('mousedown', event => {
+			if (event.target.classList.contains('control')) {
+				if (state.state == 'start'){
+					startMoving(event);
+                    event.preventDefault();
+                    event.stopPropagation();
+				}
+			}
+		});
+
+
+		target.addEventListener('mousemove', event => {
+			if(state.state == 'moving') {
+                var loc = cursorPoint(event, target);
+                state.currentPoint.setAttributeNS(null, "transform", `translate(${loc.x}, ${loc.y})`);
+				state.currentLine.setAttribute('d', `${state.pathDataBefore}${loc.x} ${loc.y} ${state.pathDataAfter}`);
+			}
+		});
+
+		target.addEventListener('mouseup', event => {
+			if(state.state == 'moving') {
+                var loc = cursorPoint(event, target);
+				state.currentPoint.setAttribute('cx', loc.x);
+				state.currentPoint.setAttribute('cy', loc.y);
+				state.currentLine.setAttribute('d', `${state.pathDataBefore}${loc.x} ${loc.y} ${state.pathDataAfter}`);
+				state.currentPoint.classList.remove('selected');
+				reset();
+			}
+		});
+
+		reset();
+
+	}
+
+
+    clear();
+    initializeFileOpenUI();
+    initializeAddTrack();
+    initializeDragTrack();
+}
+
+
+
 // Find your root SVG element
 var svg = document.getElementById('svgmap');
 
@@ -200,9 +353,9 @@ var svg = document.getElementById('svgmap');
 var pt = svg.createSVGPoint();
 
 // Get point in global SVG space
-function cursorPoint(evt){
+function cursorPoint(evt, root=svg){
   pt.x = evt.clientX; pt.y = evt.clientY;
-  return pt.matrixTransform(svg.getScreenCTM().inverse());
+  return pt.matrixTransform(root.getScreenCTM().inverse());
 }
 
 var info = document.getElementById('info');
@@ -269,8 +422,12 @@ function enableScrolling() {
         svg.classList.add("drag")
     }
     function mousemove(event) {
-        container.scrollLeft = pos.left + pos.x - event.clientX;
-        container.scrollTop = pos.top + pos.y - event.clientY;  
+        if (event.buttons==0) {
+            mouseup();
+        } else {
+            container.scrollLeft = pos.left + pos.x - event.clientX;
+            container.scrollTop = pos.top + pos.y - event.clientY;  
+        }
     }
     function mouseup(event) {
         svg.removeEventListener('mousemove', mousemove);
@@ -307,3 +464,4 @@ function enableZooming() {
 
 enableScrolling();
 enableZooming();
+initializeController();

@@ -9,11 +9,29 @@ g.gleis.selected>*{
 g.gleis>path{
     fill: none;
     stroke-width: 5px;
+    vector-effect: non-scaling-stroke;
 }
 
 g.gleis>circle{
     fill: white;
     stroke-width: 2px;
+    cursor: move;
+}
+
+.control {
+    cursor: move;
+    vector-effect: non-scaling-stroke;
+    stroke-linecap: round;
+}
+
+.control.outer {
+    stroke-width: 14px;
+    stroke: black;
+}
+
+.control.inner {
+    stroke-width: 10px;
+    stroke: white;
 }
 
 .profile {
