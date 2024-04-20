@@ -220,6 +220,26 @@ function initializeController() {
         }
     }
 
+    function createControlElement(x, y, withSlope) {
+      const g = document.createElementNS('http://www.w3.org/2000/svg',"g");
+
+      if (withSlope) {
+        const c = document.createElementNS('http://www.w3.org/2000/svg',"use");
+        c.setAttributeNS(null, "href", "#slopecontrol");
+        c.setAttributeNS(null, "class", "control slope");
+        g.appendChild(c);
+      }
+
+      const c = document.createElementNS('http://www.w3.org/2000/svg',"use");
+      c.setAttributeNS(null, "href", "#control");
+      c.setAttributeNS(null, "class", "control position");
+      g.appendChild(c);
+
+      g.setAttributeNS(null, "transform", `translate(${x}, ${y})rotate(0)`);
+      g.setAttributeNS(null, "class", "controlgrp");
+      return g;
+    }
+
     function initializeAddTrack() {
         function onclick(event) {
             let newTrackName = document.getElementById("newTrackName").value;
@@ -236,16 +256,8 @@ function initializeController() {
                 let path = document.createElementNS('http://www.w3.org/2000/svg',"path");
                 path.setAttributeNS(null, 'd', 'M1000 800L3000 1200');
                 element.appendChild(path);
-                let c = document.createElementNS('http://www.w3.org/2000/svg',"use");
-                c.setAttributeNS(null, "href", "#control");
-                c.setAttributeNS(null, "transform", "translate(1000, 800)");
-                c.setAttributeNS(null, "class", "control");
-                element.appendChild(c);
-                c = document.createElementNS('http://www.w3.org/2000/svg',"use");
-                c.setAttributeNS(null, "href", "#control");
-                c.setAttributeNS(null, "transform", "translate(3000, 1200)");
-                c.setAttributeNS(null, "class", "control");
-                element.appendChild(c);
+                element.appendChild(createControlElement(1000, 800, true));
+                element.appendChild(createControlElement(3000, 1200, true));
                 const svgContainer = document.getElementById('LS');
                 svgContainer.appendChild(element);
             }
@@ -279,16 +291,43 @@ function initializeController() {
 		}
 
 		function startMoving(event) {
+      var cgrp = event.target.parentElement;
+      while (!cgrp.classList.contains("controlgrp")){
+        cgrp = cgrp.parentElement;
+      }
+      var gleis = cgrp.parentElement;
+      while (!gleis.classList.contains("gleis")){
+        gleis = gleis.parentElement;
+      }
+
+      let action;
+      if (event.target.classList.contains("position")) {
+        action = 'moving';
+      } else {
+        action = 'rotating';
+      }
+
+      const loc = cursorPoint(event, target);
+      const mat = cgrp.transform.baseVal.getItem(0).matrix;
+      const ang = cgrp.transform.baseVal.getItem(1).angle;
+      const angle = Math.atan2(loc.y - mat.f, loc.x - mat.e) * 180 / Math.PI;
+      const da = (angle - ang)%360;
+
 			state = {
-				state: 'moving',
-				currentPoint: event.target,
-				currentLine: event.target.parentElement.getElementsByTagName('path')[0],
+				state: action,
+        start_angle: ang,
+        extra_angle: (da < -90 || (da > 90 && da < 270) ? 180 : 0),
+				currentPoint: cgrp,
+				currentLine: gleis.getElementsByTagName('path')[0],
 				pathDataBefore: "M",
 				pathDataAfter: ""
 			};
+
+
+
 			state.currentPoint.classList.add('selected');
 			let after = false;
-			for (let pt of event.target.parentElement.getElementsByTagName('use')) {
+			for (let pt of gleis.getElementsByClassName('controlgrp')) {
 				if (pt === state.currentPoint) {
 					after = true;
 					continue;
@@ -316,19 +355,20 @@ function initializeController() {
 
 		target.addEventListener('mousemove', event => {
 			if(state.state == 'moving') {
-                var loc = cursorPoint(event, target);
-                state.currentPoint.setAttributeNS(null, "transform", `translate(${loc.x}, ${loc.y})`);
+                const loc = cursorPoint(event, target);
+                state.currentPoint.setAttributeNS(null, "transform", `translate(${loc.x}, ${loc.y})rotate(${state.start_angle})`);
 				state.currentLine.setAttribute('d', `${state.pathDataBefore}${loc.x} ${loc.y} ${state.pathDataAfter}`);
-			}
+			} else if (state.state == 'rotating') {
+        const loc = cursorPoint(event, target);
+        const mat = state.currentPoint.transform.baseVal.getItem(0).matrix;
+        const angle = Math.atan2(loc.y - mat.f, loc.x - mat.e) * 180 / Math.PI + state.extra_angle;
+        state.currentPoint.setAttributeNS(null, "transform", `translate(${mat.e}, ${mat.f})rotate(${angle})`);
+      }
 		});
 
 		target.addEventListener('mouseup', event => {
-			if(state.state == 'moving') {
-                var loc = cursorPoint(event, target);
-				state.currentPoint.setAttribute('cx', loc.x);
-				state.currentPoint.setAttribute('cy', loc.y);
-				state.currentLine.setAttribute('d', `${state.pathDataBefore}${loc.x} ${loc.y} ${state.pathDataAfter}`);
-				state.currentPoint.classList.remove('selected');
+			if(state.state == 'moving' || state.state == 'rotating') {
+        state.currentPoint.classList.remove('selected');
 				reset();
 			}
 		});

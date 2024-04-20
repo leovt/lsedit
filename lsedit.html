@@ -35,9 +35,24 @@
     <div id="mapcontainer">
 <svg ViewBox="0 0 4000 2000" id="svgmap" width="4000" height="2000">
     <defs>
+      <marker
+  id="arrow"
+  viewBox="-5 -5 10 10"
+  refX="0"
+  refY="0"
+  markerWidth="6"
+  markerHeight="6"
+  orient="auto-start-reverse">
+    <path d="M-2 0 -4 4 4 0 -4 -4Z"/>
+  </marker>
         <g id="control">
             <path d="M0 0H0" class="control outer"/>
             <path d="M0 0H0" class="control inner"/>
+        </g>
+        <g id="slopecontrol">
+          <line class="invisible" x1="-40" x2="40"/>
+          <path d="M-40 0H-2M2 0H40" class="slope" marker-end="url(#arrow)"/>
+          <pathx d="M38 0 36 4 44 0 36 -4Z" class="arrow"/>
         </g>
     </defs>
     <g id="map">
